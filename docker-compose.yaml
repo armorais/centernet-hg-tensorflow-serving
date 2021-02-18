@@ -1,0 +1,41 @@
+version: "3.8"
+services:
+  tf_serving:
+    runtime: nvidia
+    image: "tensorflow/serving"
+    ports:
+      - "8500:8500" # GRPC port
+      - "8501:8501" # REST API port
+    volumes:
+      - /opt/models/tensorflow2/centernet_hourglass_512x512_kpts:/models/centernet_hourglass_512x512_kpts
+    environment:
+      - MODEL_NAME=centernet_hourglass_512x512_kpts
+    shm_size: 1g
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+  grpc_client:
+    runtime: nvidia
+    build:
+        context: grpc_client
+        dockerfile: Dockerfile
+    shm_size: 1g
+    ipc: host
+    ulimits:
+      memlock: -1
+      stack: 67108864
+    volumes:
+      - ./grpc_client:/app
+      - /opt/samples/:/samples/
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      - SERVER_HOST=tf_serving
+      - SERVER_PORT=8500
+      - MODEL_NAME=centernet_hourglass_512x512_kpts
+      - NVIDIA_VISIBLE_DEVICES=0
+      - DISPLAY=$DISPLAY
+    working_dir: /app
+    command: python3 run.py
+    depends_on: 
+      - tf_serving
