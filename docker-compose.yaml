@@ -2,12 +2,12 @@ version: "3.8"
 services:
   tf_serving:
     runtime: nvidia
-    image: "tensorflow/serving"
+    image: "tensorflow/serving:2.2.2-gpu"
     ports:
       - "8500:8500" # GRPC port
       - "8501:8501" # REST API port
     volumes:
-      - /opt/models/tensorflow2/centernet_hourglass_512x512_kpts:/models/centernet_hourglass_512x512_kpts
+      - ./models:/models/
     environment:
       - MODEL_NAME=centernet_hourglass_512x512_kpts
     shm_size: 1g
